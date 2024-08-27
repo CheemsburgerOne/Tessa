@@ -1,0 +1,29 @@
+﻿@page "/Register"
+@using Tessa.Components.Layout
+@using Tessa.Models.User
+@inject IUserService _UserService
+@layout EmptyLayout
+
+<h3>Register Page</h3>
+<p></p>
+<EditForm id="RegisterForm" method="post" FormName="RegForm" Model="_UserEditDto" OnSubmit="RegisterCallback">
+    <p>Username: </p>
+    <InputText id="username" class="form-control" @bind-Value="_UserEditDto.Username"/>
+    <p>Password: </p>
+    <InputText id="password" class="form-control" @bind-Value="_UserEditDto.Password"/>
+    <p>Email: </p>
+    <InputText id="email" class="form-control" @bind-Value="_UserEditDto.Email"/>
+    <p> </p>
+    <button type="submit">Register</button>
+</EditForm>
+
+@code {
+    [SupplyParameterFromForm]
+    private UserEditDto _UserEditDto { get; set; } = new();
+
+    private async Task RegisterCallback()
+    {
+        await _UserService.CreateAsync(_UserEditDto, UserType.Default);
+    }
+    
+}

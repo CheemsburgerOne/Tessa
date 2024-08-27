@@ -1,0 +1,12 @@
+﻿@page "/Logout"
+@using Tessa.Models.User
+@inject IUserService _UserService
+@inject IHttpContextAccessor _HttpContextAccessor
+<h3>Logout</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await _UserService.LogoutAsync(_HttpContextAccessor);
+    }
+}

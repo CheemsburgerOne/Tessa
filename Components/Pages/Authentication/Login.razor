@@ -1,0 +1,27 @@
+﻿@page "/Login"
+@using Tessa.Components.Layout
+@using Tessa.Models.User
+@inject IUserService _UserService
+@inject IHttpContextAccessor _HttpContextAccessor
+@layout EmptyLayout
+<h3>Login Page</h3>
+<p></p>
+<EditForm id="LoginForm" method="post" FormName="LoginForm" Model="_loginDto" OnSubmit="LoginCallback">
+    <p>Username: </p>
+    <InputText id="username" class="form-control" @bind-Value="_loginDto.Username"/>
+    <p>Password: </p>
+    <InputText id="password" class="form-control" @bind-Value="_loginDto.Password"/>
+    <p> </p>
+    <button type="submit">Login</button>
+</EditForm>
+@code {
+    [SupplyParameterFromForm]
+    private LoginDto _loginDto { get; set; } = new();
+    private async Task LoginCallback()
+    {
+        await _UserService.LoginAsync(_HttpContextAccessor, _loginDto);
+    }
+    
+    
+    
+}
