@@ -18,7 +18,7 @@ public class Program
         builder.Services.AddHttpContextAccessor();
         
         builder.Services.AddDbContext<TessaDbContext>();
-
+        
         builder.Services.AddModelServices();
         
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
