@@ -1,0 +1,61 @@
+@page "/FilesystemTest"
+@using Tessa.Models.Filesystem.Directory
+@inject IDirectoryService _DirectoryService
+@inject IHttpContextAccessor _HttpContextAccessor
+<h3>Filesystem Test Page</h3>
+@if(fetched != null)
+{
+    <p>Last fetch @DateTime.Now:</p>
+    <p>Directory fetched: @fetched.Name</p>
+}
+else
+{
+    <p>Directory not fetched</p>
+}
+
+
+
+<p1>GET</p1>
+<EditForm id="GetDir" method="post" FormName="GetDirectoryForm" Model="GetDirectoryInputWrapped" OnSubmit="GetDirectory">
+    <p>Path: </p>
+    <InputText id="path" class="form-control" @bind-Value="GetDirectoryInputWrapped.Path"/>
+    <button type="submit">Login</button>
+</EditForm>
+
+<p2>CREATE</p2>
+<EditForm id="CreateDir" method="post" FormName="CreateDirectoryForm" Model="CreateDirectoryInputWrapped" OnSubmit="CreateDirectory">
+    <p>Path: </p>
+    <InputText id="password" class="form-control" @bind-Value="CreateDirectoryInputWrapped.Path"/>
+    <button type="submit">Login</button>
+</EditForm>
+
+
+@code {
+
+    Directory? fetched = null;
+    public string CurrentPath { get; set; } = String.Empty;
+    
+    private class GetDirectoryInputWrapper
+    {
+        public string? Path { get; set; } = String.Empty;
+    }
+
+    [SupplyParameterFromForm] 
+    GetDirectoryInputWrapper GetDirectoryInputWrapped { get; set; } = new();
+
+    private async Task GetDirectory()
+    {
+        fetched = await _DirectoryService.GetAsync(GetDirectoryInputWrapped.Path!);
+        StateHasChanged();
+
+    }
+    
+    [SupplyParameterFromForm]
+    DirectoryEditDto CreateDirectoryInputWrapper{ get; set; }
+    private void CreateDirectory()
+    {
+        DirectoryInfo directory = await _DirectoryService.CreateAsync()   
+    }
+    
+    
+}

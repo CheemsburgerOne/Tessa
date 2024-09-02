@@ -1,0 +1,11 @@
+@page "/ConfigDebug"
+@using Microsoft.Extensions.Options
+@using Tessa.Utilities.Configuration
+@inject IConfigurationService ConfigurationService
+<h3>ConfigDebug</h3>
+
+<p>Root: @ConfigurationService.Configuration.Root</p>
+
+@code {
+    
+}
