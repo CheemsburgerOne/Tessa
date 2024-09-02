@@ -9,9 +9,12 @@ public abstract class Base
     public Guid? OwnerId { get; set; }
     
     public virtual User.User? Owner { get; set; }
+    /// <summary>
+    /// ID of the parent directory.
+    /// </summary>
     public Guid? ParentId { get; set; }
     
-    // public virtual Directory.Directory? Parent { get; set; }
+    public virtual Directory.Directory? Parent { get; set; }
     
     [Required]
     [StringLength(40)]

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Tessa.Components;
 using Tessa.Models;
 using Tessa.Persistance.PostgreSQL;
+using Tessa.Utilities.Configuration;
 
 namespace Tessa;
 
@@ -10,6 +11,8 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddConfiguration();
         
         builder.Services
             .AddRazorComponents()
