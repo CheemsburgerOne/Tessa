@@ -1,11 +1,22 @@
+![image](https://github.com/user-attachments/assets/a1569b35-11d9-48de-b46b-5c832ec23e34)
+
+
 <h1>Tessa</h1>
 
-<h3>Tessa is your easy-to-deploy, self-hosted cloud drive for local network. Inspired by Google Drive it implements key features such as:</h3>
+<h3>Tessa is your easy-to-deploy, self-hosted cloud drive for local network. Inspired by Google Drive, it implements key features such as:</h3>
 - Authorization<br />
 - Seperated storage from each user<br />
 - Folder creation and file upload<br />
-- File download and folder-as-zip download<br />
+- File and folder-as-zip download<br />
 - Fast transfer<br />
 - Accesed by any device via browser<br />
 
-TODO:
+Project is heavily VIP.
+
+TODO!:
+- Implement Result<T> pattern to all actions
+- Tweak file upload modal background on submit
+- Tweak NavigationBar for mobile devices
+- Add user icon upload to register form
+- Add missing CRUD operations for files and directories
+- Streamline setting up the project on a new machine with StartupManager
