@@ -21,9 +21,9 @@ public abstract class Base
     public string? Name { get; set; }
     
     /// <summary>
-    /// Path to an item in the filesystem.
+    /// Path to an item in the filesystem.<br/>
     /// Directories:
-    /// [/root]/user/path/to/directory/
+    /// [/root]/user/path/to/directory/ <br/>
     /// Files:
     /// [/root]/user/path/to/file.txt
     ///

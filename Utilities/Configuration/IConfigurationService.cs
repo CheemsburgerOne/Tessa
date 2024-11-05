@@ -1,6 +1,6 @@
 namespace Tessa.Utilities.Configuration;
 
-public class IConfigurationService
+public interface IConfigurationService
 { 
     public Configuration Configuration { get; protected set; }
 }

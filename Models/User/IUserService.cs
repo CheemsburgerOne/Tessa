@@ -1,9 +1,15 @@
-﻿namespace Tessa.Models.User;
+﻿using Tessa.Models.User.ResultTypes;
+using Tessa.Utilities.Result;
+
+namespace Tessa.Models.User;
 
 public interface IUserService
 {
-    public Task<Guid?> CreateAsync(UserEditDto dto, UserType type);
-    public Task<User> GetAsync(Guid id);
-    public Task<bool> LoginAsync(IHttpContextAccessor httpContext, LoginDto dto);
-    public Task LogoutAsync(IHttpContextAccessor httpContext);
+    public Task<Result<RegisterUserResultType>> RegisterAsync(UserEditDto? dto, UserType? type);
+    public Task<Result<LoginUserResultType>> LoginAsync(LoginDto dto);
+    public Task<User?> GetUserFromHttpContext();
+    public Task LogoutAsync();
+    public Task<bool> IsEmailUniqueAsync(string email);
+    public Task<bool> IsUsernameUniqueAsync(string? username);
+    public Task<Result<UserNavMenuMiniDto>> GetNavMenuMiniDtoAsync();
 }

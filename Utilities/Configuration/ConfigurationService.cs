@@ -6,24 +6,27 @@ namespace Tessa.Utilities.Configuration;
 /// </summary>
 public class ConfigurationService : IConfigurationService
 {
+    public Configuration Configuration { get; set; } = new Configuration();
     public ConfigurationService()
     {
-        Configuration = Initialize();
+        Initialize();
     }
-
-    private Configuration Initialize()
+    /// <summary>
+    /// Deserialize the configuration file into a Configuration object.
+    /// </summary>
+    private void Initialize()
     { 
         try
         {
             FileStream jsonStream = File.OpenRead("configuration.json");
-            Configuration? config = JsonSerializer.Deserialize<Configuration>(jsonStream);
-            return config!;
+            Configuration = JsonSerializer.Deserialize<Configuration>(jsonStream);
         }
         catch (Exception e)
         {
             Console.WriteLine("Error loading configuration: " + e.Message);
-            Environment.Exit(1);
-            return null;
+            throw new FileNotFoundException("Configuration file is not found", "configuration.json");
+            return;
         }
     }
+
 }

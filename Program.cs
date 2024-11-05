@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.StaticFiles.Infrastructure;
+using Microsoft.Extensions.FileProviders;
 using Tessa.Components;
 using Tessa.Models;
 using Tessa.Persistance.PostgreSQL;
+using Tessa.Utilities;
 using Tessa.Utilities.Configuration;
 
 namespace Tessa;
@@ -12,11 +15,13 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        builder.Services.AddConfiguration();
+        builder.Services.AddUtilities();
         
         builder.Services
             .AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        builder.Services.AddControllers();
 
         builder.Services.AddHttpContextAccessor();
         
@@ -28,12 +33,11 @@ public class Program
             .AddCookie(options =>
             {
                 options.Cookie.Name = "TessaAuthScheme";
-                options.LoginPath = "/Login";
+                options.LoginPath = "/login";
                 // options.AccessDeniedPath = "/Denied";
-                options.ExpireTimeSpan = System.TimeSpan.FromMinutes(15);
+                options.ExpireTimeSpan = System.TimeSpan.FromMinutes(60);
                 options.SlidingExpiration = true;
             });
-        
 
         var app = builder.Build();
         
@@ -50,13 +54,22 @@ public class Program
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
-        app.UseAntiforgery();
+        // using (var scope = app.Services.CreateScope())
+        // {
+        //     string root = scope.ServiceProvider.GetRequiredService<IConfigurationService>().Configuration.Root;
+        //     app.UseStaticFiles(new StaticFileOptions()
+        //     {
+        //         FileProvider = new PhysicalFileProvider(root),
+        //         RequestPath = "/download-request"
+        //     });
+        // }
         app.UseAuthentication();
         app.UseAuthorization();
+        app.UseAntiforgery();
 
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
-        
+        app.MapControllerRoute("default", "{controller}/{action}/{data}");
 
         app.Run();
     }

@@ -7,7 +7,7 @@ public static class FilePathHelper
     /// Also adds a slash at the beginning.
     /// Cuts off the last slash if it is the last character.
     /// Used mainly to ensure that the file path is in a correct format for database search.<br/>
-    /// ex. "path///to//dir" -> "/path/to/dir"
+    /// ex. "path///to//photo.jpg/" -> "/path/to/photo.jpg"
     /// </summary>
     /// <param name="path"></param>
     /// <returns></returns>
@@ -23,6 +23,25 @@ public static class FilePathHelper
             path = path[..^1];
         }
         return path;
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="root"></param>
+    /// <param name="username"></param>
+    /// <param name="path"></param>
+    /// <returns></returns>
+    public static string NormalizeFileFromDownloadLink(string root, string username, string path)
+    {
+        char[] dashesReplaced = new char[path.Length];
+        for (int i = 0; i < path.Length; i++)
+        {
+
+            if (path[i] == '-') dashesReplaced[i] = '/';
+            else dashesReplaced[i] = path[i];
+        }
+
+        return $"{root}{username}/{path}";
     }
     
     public static string NormalizeFileName(this string name)
@@ -43,5 +62,15 @@ public static class FilePathHelper
         int index = filename.LastIndexOf('.');
         
         return index == -1 ? null : filename[(index + 1)..].ToLower();
+    }
+    /// <summary>
+    /// Extracts the filename from the path.
+    /// </summary>
+    /// <param name="path">Path to extract from</param>
+    /// <returns>Extracted filename</returns>
+    public static string ExtractFilename(this string path)
+    {
+        int index = path.LastIndexOf('/');
+        return index == -1 ? path : path[(index + 1)..];
     }
 }

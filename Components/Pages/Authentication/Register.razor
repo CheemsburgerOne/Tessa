@@ -1,29 +1,72 @@
-﻿@page "/Register"
+﻿@page "/register"
 @using Tessa.Components.Layout
 @using Tessa.Models.User
-@inject IUserService _UserService
-@layout EmptyLayout
-
-<h3>Register Page</h3>
-<p></p>
-<EditForm id="RegisterForm" method="post" FormName="RegForm" Model="_UserEditDto" OnSubmit="RegisterCallback">
-    <p>Username: </p>
-    <InputText id="username" class="form-control" @bind-Value="_UserEditDto.Username"/>
-    <p>Password: </p>
-    <InputText id="password" class="form-control" @bind-Value="_UserEditDto.Password"/>
-    <p>Email: </p>
-    <InputText id="email" class="form-control" @bind-Value="_UserEditDto.Email"/>
-    <p> </p>
-    <button type="submit">Register</button>
-</EditForm>
+@using Tessa.Models.User.ResultTypes
+@using Tessa.Utilities.Result
+@inject IUserService UserService
+@inject NavigationManager NavigationManager
+@layout EmptyLoginLayout
+<body class="bg-white rounded-lg">
+    <div class="container flex flex-col mx-auto bg-white rounded-lg pt-6 my-5">
+        <div class="flex justify-center w-full h-full my-auto xl:gap-14 lg:justify-normal md:gap-5 draggable">
+            <div class="flex items-center justify-center w-full lg:p-12">
+                <div class="flex items-center xl:p-10">
+                    <EditForm class="flex flex-col w-full h-full pb-6 text-center bg-white rounded-3xl"
+                              id="RegisterForm" method="post" FormName="RegisterForm" Model="@RegisterDto" OnSubmit="@RegisterCallback">
+                        <h3 class="mb-3 text-4xl font-extrabold text-dark-grey-900">Sharing is caring!</h3>
+                        <p class="mb-4 text-grey-700">Enter your email, username and password</p>
+                        @if ( _createResult != null )
+                        {
+                            <p class="mb-1 text-red-800">@_errorMessage</p>
+                        }
+                        <label for="username" class="mb-2 text-sm text-start text-grey-900">Email*</label>
+                        <InputText class="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-5 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                                   id="email" type="email" placeholder="Enter an email" @bind-Value="@RegisterDto.Email"/>
+                        <label for="password" class="mb-2 text-sm text-start text-grey-900">Username*</label>
+                        <InputText class="flex items-center w-full px-5 py-4 mr-2 text-sm font-medium outline-none focus:bg-grey-400 mb-5 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                                   id="username" type="username" placeholder="Enter a username" @bind-Value="@RegisterDto.Username"/>
+                        <label for="password" class="mb-2 text-sm text-start text-grey-900">Password*</label>
+                        <InputText class="flex items-center w-full px-5 py-4 mb-8 mr-2 text-sm font-medium outline-none focus:bg-grey-400 placeholder:text-grey-700 bg-grey-200 text-dark-grey-900 rounded-2xl"
+                                   id="password" type="password" placeholder="Enter a password" @bind-Value="@RegisterDto.Password"/>
+                        <button type="submit" class="w-full px-6 py-5 mb-5 text-sm font-bold leading-none text-white transition duration-300 md:w-96 rounded-2xl hover:bg-purple-blue-600 focus:ring-4 focus:ring-purple-blue-100 bg-purple-blue-500">Sign Up</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
 
 @code {
     [SupplyParameterFromForm]
-    private UserEditDto _UserEditDto { get; set; } = new();
+    private UserEditDto RegisterDto { get; set; } = new();
 
+    private string? _errorMessage;
+    private Result<RegisterUserResultType>? _createResult; 
+    
     private async Task RegisterCallback()
     {
-        await _UserService.CreateAsync(_UserEditDto, UserType.Default);
+        _createResult = await UserService.RegisterAsync(RegisterDto, UserType.Default);
+        if (_createResult.TryGetResult(out RegisterUserResultType code))
+        {
+            if (code == RegisterUserResultType.Ok)
+            {
+                NavigationManager.NavigateTo("/login");
+            }
+            else
+            {
+                _errorMessage = ResultToMessage(code);
+            }
+        }
     }
-    
+
+    private static string ResultToMessage(RegisterUserResultType code) =>
+        code switch
+        {
+            RegisterUserResultType.Null => "Error occured. Data null",
+            RegisterUserResultType.EmailNotUniqueOrInvalid => "Supplied email is invalid or taken",
+            RegisterUserResultType.PasswordRequirements => "Password does not meet requirements",
+            RegisterUserResultType.UsernameNotUniqueOrInvalid => "Supplied username is invalid or taken",
+            RegisterUserResultType.DriveError => "Internal server error.",
+                _ => ""
+        };
 }

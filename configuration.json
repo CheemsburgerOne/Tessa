@@ -1,3 +1,12 @@
 {
-  "Root": "D:/Tessa/"
+  "PostgreSQLString": "Host=127.0.0.1;Port=5432;Database=tessa_db;Username=postgres;Password=admin;",
+  "Root": "Storage/root/",
+  "Users" : "Storage/users/",
+  "Icons": [
+    ["dir", "Resources/Icons/_dir.png"],
+    ["file", "Resources/Icons/_file.png"],
+    ["empty", "Resources/Icons/_empty.png"],
+    ["rar", "Resources/Icons/_rar.png"],
+    ["zip", "Resources/Icons/_zip.png"]
+  ]
 }

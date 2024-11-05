@@ -1,0 +1,293 @@
+@using System.Net
+@using System.Runtime.Versioning
+@using Microsoft.AspNetCore.Mvc.Formatters.Xml
+@using Tessa.Models.Filesystem.Directory
+@using Tessa.Models.Filesystem.Directory.ResultTypes
+@using Tessa.Models.Filesystem.File
+@using Tessa.Models.Filesystem.File.ResultTypes
+@using Tessa.Models.User
+@using Tessa.Utilities.Result
+@rendermode InteractiveServer
+@inject IFileService FileService
+@inject IDirectoryService DirectoryService
+
+<header class="antialiased">
+    <nav class="bg-gray-50 px-4 py-3">
+        <div class="flex items-center justify-between">
+            <NavLink href="/drive" class="flex-1">
+                <span class="self-center whitespace-nowrap text-4xl font-semibold dark:text-white pr-4">Tessa</span>
+            </NavLink>
+            <EditForm Model="@SearchbarInput" FormName="SearchbarForm" OnSubmit="@SearchbarFormCallback" class="flex-1">
+                <label for="topbar-search" class="sr-only bg-gray-100">Search</label>
+                <div class="relative w-full grow bg-gray-200">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" /></svg>
+                    </div>
+                    @if (UserNavMenuDto == null)
+                    {
+                        <InputText @bind-Value="@SearchbarInput.Value" type="text" name="query" id="topbar-search" class="focus:ring-primary-100 focus:border-primary-100 dark:focus:ring-primary-500 dark:focus:border-primary-500 block w-full rounded-lg border border-gray-500 bg-gray-50 p-2.5 pl-9 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400" placeholder="Loading..."/>
+                    }
+                    else
+                    {
+                        <InputText @bind-Value="@SearchbarInput.Value" type="text" name="query" id="topbar-search" class="focus:ring-primary-100 focus:border-primary-100 dark:focus:ring-primary-500 dark:focus:border-primary-500 block w-full rounded-lg border border-gray-500 bg-gray-50 p-2.5 pl-9 text-gray-900 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"/>
+                    }
+                </div>
+            </EditForm>
+            <div class="flex flex-1 justify-end">
+                <button type="button" data-modal-target="upload-modal" data-modal-toggle="upload-modal" class="text-white bg-purple-600 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">Upload</button>
+                <button type="button" data-modal-target="folder-modal" data-modal-toggle="folder-modal" class="text-white bg-purple-600 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-sm px-5 py-2.5 text-center me-2 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">New folder</button>
+                @if (UserNavMenuDto == null)
+                {
+                    <img id="usericonButton" type="button" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-start" class="h-10 w-10 cursor-pointer rounded-full" src="https://raw.githubusercontent.com/Loopple/loopple-public-assets/main/motion-tailwind/img/icons/user.png" alt="User dropdown"/>
+                }
+                else
+                {
+                    <img id="usericonButton" type="button" data-dropdown-toggle="userDropdown" data-dropdown-placement="bottom-start" class="h-10 w-10 cursor-pointer rounded-full" src=@UserNavMenuDto.FullBase64Icon alt="User dropdown"/>
+                }
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- Dropdown user menu -->
+<div id="userDropdown" class="z-10 hidden w-44 divide-y divide-gray-100 rounded-lg bg-white shadow dark:divide-gray-600 dark:bg-gray-700">
+    <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
+    @if(UserNavMenuDto == null)
+    {
+        <div>Fetching...</div>
+        <div class="truncate font-medium">Fetching...</div>
+    }
+    else
+    {
+        <div>@UserNavMenuDto.Username</div>
+        <div class="truncate font-medium">@UserNavMenuDto.Email</div>
+    }
+    </div>
+    <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" aria-labelledby="usericonButton">
+        <li>
+            <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Drive</a>
+        </li>
+        <li>
+            <a href="#" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white">Logs</a>
+        </li>
+    </ul>
+    <div class="py-1">
+        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-600 dark:hover:text-white">Sign out</a>
+    </div>
+</div>
+<!------------>
+<!--Upload modal-->
+<div id="upload-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-3 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Upload new file
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="upload-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <EditForm FormName="UploadForm" OnSubmit="UploadFileFormCallback" Model="@UploadInput" class="p-4 md:p-5">
+                <label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your current location: @LocalLatestStablePath</label>
+                <div class="flex gap-3 mb-3">
+                    <div class="grow">
+                        <label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                        <InputText type="text" name="path" id="filename" @bind-Value="@UploadInput.Name" class="h-fit bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter filename"/>
+                    </div>
+                    <div class="">
+                        <button id="proceedUploadButton" type="submit" class="mt-7 h-fit text-white bg-purple-600 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-sm px-6 py-2.5 text-center me-1 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+                            </svg>
+                            <span class="sr-only">Proceed modal</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center w-full">
+                    <label for="dropzone-file" class="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600">
+                        <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                            <svg class="w-8 h-8 mb-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                            </svg>
+                            <p class="mb-2 text-sm text-gray-500 dark:text-gray-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+                            @* <p class="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG or GIF (MAX. 800x400px)</p> *@
+                        </div>
+                        <InputFile OnChange="@UploadFileDialogCallback" id="dropzone-file" type="file" class="hidden" multiple/>
+                    </label>
+                </div>
+                @{
+                    switch (_uploadState)
+                    {
+                        case UploadState.NotSelected: break;
+                        case UploadState.Selected:
+                        case UploadState.InProgress:
+                            <label class="block mt-4 text-sm font-medium text-gray-900 dark:text-white"></label>
+                            foreach (var item in UploadInput.Files)
+                            {
+                                <label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">@item.Name</label>
+                            }
+
+                            break;
+                        case UploadState.Done:
+                            <label class="block mt-4 text-sm font-medium text-gray-900 dark:text-white"></label>
+                            foreach (var item in _uploadResult!.SuccessfulUploads!)
+                            {
+                                if (item.Result)
+                                {
+                                    <label for="path" class="block mb-2 text-sm font-medium text-green-600 dark:text-white">@item.Name</label>
+                                }
+                                else
+                                {
+                                    <label for="path" class="block mb-2 text-sm font-medium text-red-600 dark:text-white">@item.Name</label>
+                                }
+                            }
+
+                            break;
+                        case UploadState.Error:
+                            <label for="path" class="block mb-2 text-sm font-medium text-red-700-600 dark:text-white">Error uploading files!</label>
+                            break;
+                    }
+                }
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+<!--Folder modal-->
+<div id="folder-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
+    <div class="relative p-4 w-full max-w-xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
+            <!-- Modal header -->
+            <div class="flex items-center justify-between p-3 md:p-5 border-b rounded-t dark:border-gray-600">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                    Create new folder
+                </h3>
+                <button type="button" class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white" data-modal-hide="folder-modal">
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                    <span class="sr-only">Close modal</span>
+                </button>
+            </div>
+            <!-- Modal body -->
+            <EditForm FormName="FolderModal" OnSubmit="@CreateFolderCallback" Model="@CreateFolderInput" class="p-4 pr-2 md:p-5">
+                <label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Your current location: @LocalLatestStablePath</label>
+                <div class="flex gap-3 mb-3">
+                    <div class="grow">
+                        <label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">Name</label>
+                        <InputText type="text" name="path" id="path" @bind-Value="@CreateFolderInput.Name" class="h-fit bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500" placeholder="Enter folder name" required="Folder name cannot be empty"/>
+                    </div>
+                    <div class="">
+                        <button id="proceedButton" type="submit" data-modal-target="folder-modal" data-modal-toggle="folder-modal" class="mt-7 h-fit text-white bg-purple-600 hover:bg-purple-800 focus:outline-none focus:ring-4 focus:ring-purple-300 font-medium rounded-full text-sm px-6 py-2.5 text-center me-1 dark:bg-purple-600 dark:hover:bg-purple-700 dark:focus:ring-purple-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+                            </svg>
+                            <span class="sr-only">Proceed modal</span>
+                        </button>
+                    </div>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    
+    [Parameter] public UserNavMenuMiniDto? UserNavMenuDto { get; set; } = null;
+    
+    /// <summary>
+    /// Invoke to load view for specified path.
+    /// </summary>
+    [Parameter] public EventCallback<string> RedirectToNewPath { get; set; }
+    
+    /// <summary>
+    /// Invoke for parent to be redrawn
+    /// </summary>
+    [Parameter] public EventCallback ParentStateHasChanged { get; set; }
+    
+    /// <summary>
+    /// Since searchbar value can be changed at any given moment and is not reliable for issued actions,
+    /// component should retrieve the latest stable path from parent.
+    /// This way user does not need to revert unfinished changes on the searchbar.
+    /// </summary>
+    [Parameter] public Func<string> GetLatestStablePath { get; set; }
+
+    private string LocalLatestStablePath { get; set; } = "";
+    private Result<CreateDirectoryResultType>? _createFolderResult = null;
+
+    private UploadState _uploadState = UploadState.NotSelected;
+    private UploadFileResultObject? _uploadResult = null;
+    
+    [SupplyParameterFromForm] private UploadInputWrapper UploadInput { get; set; } = new();
+    [SupplyParameterFromForm] private DirectoryEditDto CreateFolderInput { get; set; } = new();
+    [SupplyParameterFromForm] private SearchbarWrapper SearchbarInput { get; set; } = new();
+    
+    // Searchbar logic
+    private void SearchbarFormCallback()
+    {
+        //Each definitive redirection sets LatestStablePath
+        RedirectToNewPath.InvokeAsync(SearchbarInput.Value);
+        LocalLatestStablePath = GetLatestStablePath();
+    }
+    
+    // Upload form logic
+    private void UploadFileDialogCallback(InputFileChangeEventArgs obj)
+    {
+        UploadInput.Files = obj.GetMultipleFiles();
+        _uploadState = UploadState.Selected;
+        StateHasChanged();
+    }
+    
+    private async void UploadFileFormCallback(EditContext obj)
+    {
+        LocalLatestStablePath = GetLatestStablePath();
+        _uploadState = UploadState.InProgress;
+        StateHasChanged();
+        UploadInput.Path = LocalLatestStablePath;
+        Result<UploadFileResultObject> result = await FileService.UploadMany(UploadInput);
+        if (result.TryGetResult(out UploadFileResultObject? value))
+        {
+            _uploadResult = value;
+            _uploadState = _uploadResult!.Code is UploadFileResultType.Ok or UploadFileResultType.Incomplete ? UploadState.Done : UploadState.Error;
+            StateHasChanged();
+            await RedirectToNewPath.InvokeAsync(LocalLatestStablePath);
+        }
+    }
+    
+    // Create folder logic
+    private async Task CreateFolderCallback()
+    {
+        LocalLatestStablePath = GetLatestStablePath();
+        CreateFolderInput.Path = LocalLatestStablePath;
+        _createFolderResult = await DirectoryService.CreateAsync(CreateFolderInput);
+        if (_createFolderResult.TryGetResult(out CreateDirectoryResultType type))
+        {
+            //Error should be handled
+        }
+        await RedirectToNewPath.InvokeAsync(LocalLatestStablePath);
+    }
+
+    public class SearchbarWrapper
+    {
+        public string Value { get; set; }
+    }
+    
+    public enum UploadState
+    {
+        NotSelected,
+        Selected,
+        InProgress,
+        Error,
+        Done
+    }
+
+}

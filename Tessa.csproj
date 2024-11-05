@@ -4,11 +4,17 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <Configurations>Debug;Release;Deploy</Configurations>
+        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
-
+    
     <ItemGroup>
-      <Folder Include="Models\Filesystem\File\" />
-      <Folder Include="Persistance\Redis\" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Resources/Icons/_dir.png" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Resources/Icons/_empty.png" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Resources/Icons/_file.png" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Resources/Icons/_rar.png" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Resources/Icons/_file.png" />
+        <None CopyToPublishDirectory="PreserveNewest" Include="Storage/Users/default/_icon.png" />
     </ItemGroup>
 
     <ItemGroup>
@@ -16,9 +22,30 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.4" />
       <PackageReference Include="StackExchange.Redis" Version="2.8.0" />
       <PackageReference Include="System.Text.Json" Version="8.0.4" />
     </ItemGroup>
+    
+    <ItemGroup>
+        <UpToDateCheckBuilt Include="Styles/source.css" Set="Css" />
+        <UpToDateCheckBuilt Include="tailwind.config.js" Set="Css" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Components\Pages\Filesystem\FilesystemTest.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Filesystem\Index.razor" />
+      <_ContentIncludedByDefault Remove="Components\Pages\Debug\ConfigDebug.razor" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Controllers\Download\" />
+    </ItemGroup>
+    
+
+    <Target Name="Tailwind" BeforeTargets="Build">
+        <Exec Command="npm run css:build"/>
+    </Target>
 
 </Project>

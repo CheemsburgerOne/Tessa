@@ -1,0 +1,116 @@
+@page "/drive"
+@using Microsoft.AspNetCore.Authorization
+@using Tessa.Components.Layout
+@using Tessa.Models.Filesystem.Directory
+@using Tessa.Components.Reusable
+@using Tessa.Models.Filesystem.Directory.ResultTypes
+@using Tessa.Models.User
+@using Tessa.Utilities.PathHelper
+@using Tessa.Utilities.Result
+
+@inject IJSRuntime JsRuntime
+@inject IDirectoryService DirectoryService
+@inject IUserService UserService
+
+@rendermode InteractiveServer
+@layout DriveLayout
+
+@attribute [Authorize]
+
+<NavigationBar ParentStateHasChanged="@StateHasChangedWrapper" GetLatestStablePath="@GetLatestStablePath" RedirectToNewPath="@RedirectToNewPath" UserNavMenuDto="@UserNavMenuMiniDto"></NavigationBar>
+<section class="bg-white w-full py-8 antialiased md:py-16 ">
+    <div class="mx-auto max-w-screen-xl px-3 2xl:px-0">
+        <div class="grid gap-4 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7">
+            @if (Batched == null)
+            {
+                <div class="text-center sm:col-span-3 md:col-span-5 lg:col-span-7">Nothing was fetched. Going back in 3 seconds....</div>
+            }
+            else if (Batched.Directories.Count == 0 && Batched.Files.Count == 0)
+            {
+                <div class="text-center sm:col-span-3 md:col-span-5 lg:col-span-7 ">Folder empty. Mind filling it? :)</div>
+            }
+            else
+            {
+                int index = 0;
+                @foreach (var item in Batched.Directories)
+                {
+                    index+=1;
+                    <Directory Name=@item.Name Path=@item.Path IconBase64=@Batched.DirectoryIconBase64 Index=@index RemoveFromDOM="@RemoveDirectoryFromDOM" />
+                }
+                @foreach(var item in Batched.Files)
+                {
+                    index += 1;
+                    <File Name=@item.Name Path=@item.Path IconBase64=@item.IconBase64 Index=@index RemoveFromDOM="@RemoveFileFromDOM"/>
+                }
+            }
+        </div>
+    </div>
+</section>
+@code {
+    private string LatestStablePath { get; set; } = "";
+    
+    DirectoryBatchedDto? Batched { get; set; }
+    UserNavMenuMiniDto? UserNavMenuMiniDto { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        LatestStablePath = "";
+        Result<UserNavMenuMiniDto> result = await UserService.GetNavMenuMiniDtoAsync();
+        if (result.TryGetResult(out UserNavMenuMiniDto? dto) )
+        {
+            UserNavMenuMiniDto = dto;
+        }
+        Result<GetBatchedResultObject> resultBatched =  await DirectoryService.GetBatchedAsync(LatestStablePath!);
+        if (resultBatched.TryGetResult(out GetBatchedResultObject value))
+        {
+            Batched = value.Value;
+        }
+    }
+
+    private void StateHasChangedWrapper() => StateHasChanged();
+    
+    protected override async Task OnAfterRenderAsync(bool isFirstRender) 
+    {
+        await JsRuntime.InvokeVoidAsync("window.initializeFlowbite");
+    }
+
+    private async void RedirectToNewPath(string path)
+    {
+        Result<GetBatchedResultObject> resultBatched =  await DirectoryService.GetBatchedAsync(path);
+        if (!resultBatched.TryGetResult(out GetBatchedResultObject value)) return;
+        if (value.Code == GetBatchedResultType.Ok)
+        {
+            LatestStablePath = path;
+            Batched = value.Value;
+        }
+        else
+        {
+            // Quick swap for UI purpose
+            DirectoryBatchedDto? temporary = Batched;
+            Batched = null;
+            StateHasChanged();
+            await Task.Delay(3000);
+            Batched = temporary;
+        }
+        StateHasChanged();
+    }
+
+    // ReSharper disable InconsistentNaming
+    // Global path getter
+    
+    private string GetLatestStablePath()
+    {
+        return LatestStablePath;
+    }
+    // Remove item functions
+    private void RemoveDirectoryFromDOM(string name)
+    {
+        Batched!.Directories.RemoveAll(e => e.Name == name);
+    }
+
+    private void RemoveFileFromDOM(string name)
+    {
+        Batched!.Files.RemoveAll(e => e.Name == name);
+    }
+    // ReSharper restore InconsistentNaming
+}

@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Tessa.Models.Filesystem.Base;
 
 namespace Tessa.Models.User;
 
@@ -27,7 +28,7 @@ public class User
     //
     // public virtual IList<Event.Event>? Events { get; set; }
     //
-    // public virtual IList<Item>? Items { get; set; }
+    public virtual IList<Base>? Items { get; set; }
 }
 
 public class UserEditDto

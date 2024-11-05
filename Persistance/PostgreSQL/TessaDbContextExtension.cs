@@ -1,4 +1,5 @@
 ﻿using Tessa.Models.User;
+using Directory = Tessa.Models.Filesystem.Directory.Directory;
 
 namespace Tessa.Persistance.PostgreSQL;
 
@@ -18,14 +19,15 @@ public static class TessaDbContextExtension
             Type = UserType.Admin,
             
         });
+        context.SaveChanges();
         
-        // context.Directories.Add(new Directory()
-        // {
-        //     Name = "root",
-        //     Path = "/",
-        //     OwnerId = null,
-        //     ParentId = null,
-        // });
+        context.Items.Add(new Directory()
+        {
+            Name = "root",
+            Path = "/",
+            OwnerId = context.Users.First(e => e.Username == "admin").Id,
+            ParentId = null,
+        });
         
         context.SaveChanges();
         return context;
