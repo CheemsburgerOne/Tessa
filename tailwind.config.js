@@ -5,21 +5,13 @@ module.exports = {
       "./node_modules/flowbite/**/*.js",
   ],
   theme: {
-      colors: {
-          'white': '#ffffff',
-          'purple': '#3f3cbb',
-          'midnight': '#121063',
-          'metal': '#565584',
-          'tahiti': '#3ab7bf',
-          'silver': '#ecebff',
-          'bubble-gum': '#ff77e9',
-          'bermuda': '#78dcca',
-      },
     extend: {},
   },
   plugins: [
       require('flowbite/plugin'),
-  ],
+  ], 
+    
+    // Disable preflight
     // daisyUI config (optional - here are the default values)
     // daisyui: {
     //     themes: ["light"], // false: only light + dark | true: all themes | array: specific themes like this ["light", "dark", "cupcake"]

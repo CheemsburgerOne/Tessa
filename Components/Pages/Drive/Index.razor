@@ -1,4 +1,4 @@
-@page "/drive"
+@page "/"
 @using Microsoft.AspNetCore.Authorization
 @using Tessa.Components.Layout
 @using Tessa.Models.Filesystem.Directory
@@ -16,7 +16,6 @@
 @layout DriveLayout
 
 @attribute [Authorize]
-
 <NavigationBar ParentStateHasChanged="@StateHasChangedWrapper" GetLatestStablePath="@GetLatestStablePath" RedirectToNewPath="@RedirectToNewPath" UserNavMenuDto="@UserNavMenuMiniDto"></NavigationBar>
 <section class="bg-white w-full py-8 antialiased md:py-16 ">
     <div class="mx-auto max-w-screen-xl px-3 2xl:px-0">
